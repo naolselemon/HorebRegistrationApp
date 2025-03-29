@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:appwrite/appwrite.dart';
+
 import 'package:horeb_registration/screens/welcome_screen.dart';
 import 'package:horeb_registration/theme/theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart' as models;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+    print("Env file loaded successfully");
+    print("PROJECT_ID: ${dotenv.env["PROJECT_ID"]}");
+  } catch (e) {
+    print("Error loading .env file: $e");
+  }
 
   Client client = Client()
       .setEndpoint("https://cloud.appwrite.io/v1")
@@ -29,7 +34,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Horeb',
       theme: lightMode,
       home: WelcomeScreen(account: account),
     );

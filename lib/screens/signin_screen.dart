@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import "package:appwrite/appwrite.dart";
+import 'package:horeb_registration/screens/signup_screen.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:horeb_registration/widgets/custom_scuffold.dart';
 import '../theme/theme.dart';
@@ -14,7 +15,120 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool rememberPassword = true;
+  bool isLoading = false;
+
+  Future<void> signIn() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    if (_formSignInKey.currentState!.validate() && rememberPassword) {
+      try {
+        final email = _emailController.text;
+        final password = _passwordController.text;
+        await widget.account.createEmailPasswordSession(
+          email: email,
+          password: password,
+        );
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Login successful")));
+      } catch (e) {
+        print("Failed to login: $e");
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else if (!rememberPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select remember me option')),
+      );
+    }
+  }
+
+  Future<void> forgetPassword() async {
+    final TextEditingController recoveryEmailController =
+        TextEditingController();
+    // Store the parent context (SignInScreen context)
+    final parentContext = context;
+
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Forgot Password'),
+          content: Form(
+            child: TextFormField(
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'Please enter your email';
+                }
+                return null;
+              },
+              controller: recoveryEmailController,
+              decoration: const InputDecoration(
+                labelText: 'Enter your email',
+                hintText: 'nola@email.com',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext), // Cancel
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final email = recoveryEmailController.text.trim();
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    const SnackBar(content: Text('Please enter an email')),
+                  );
+                  return;
+                }
+
+                try {
+                  // Send recovery email
+                  await widget.account.createRecovery(
+                    email: email,
+                    url: 'https://reset-password-lovat.vercel.app/',
+                  );
+                  if (!mounted) return;
+
+                  Navigator.pop(dialogContext); // Close dialog
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Recovery email sent! Check your inbox.'),
+                    ),
+                  );
+                } catch (e) {
+                  print('Failed to send recovery email: $e');
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to send recovery email: $e'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
@@ -48,6 +162,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 40.0),
                       TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -59,21 +174,18 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintText: 'Enter Email',
                           hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
                       const SizedBox(height: 25.0),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -87,15 +199,11 @@ class _SignInScreenState extends State<SignInScreen> {
                           hintText: 'Enter Password',
                           hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -122,6 +230,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ],
                           ),
                           GestureDetector(
+                            onTap: forgetPassword,
                             child: Text(
                               'Forget password?',
                               style: TextStyle(
@@ -136,25 +245,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formSignInKey.currentState!.validate() &&
-                                rememberPassword) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing Data'),
-                                ),
-                              );
-                            } else if (!rememberPassword) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Please agree to the processing of personal data',
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          child: const Text('Sign In'),
+                          onPressed: isLoading ? null : signIn,
+                          child:
+                              isLoading
+                                  ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                  : const Text("Sign In"),
                         ),
                       ),
                       const SizedBox(height: 25.0),
@@ -194,23 +291,23 @@ class _SignInScreenState extends State<SignInScreen> {
                         ],
                       ),
                       const SizedBox(height: 25.0),
-                      // don't have an account
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             'Don\'t have an account? ',
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
                             onTap: () {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder:
-                              //         (e) => SignUpScreen(account: account),
-                              //   ),
-                              // );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (e) =>
+                                          SignUpScreen(account: widget.account),
+                                ),
+                              );
                             },
                             child: Text(
                               'Sign up',

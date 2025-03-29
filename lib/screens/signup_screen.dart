@@ -47,14 +47,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Sign Up Successful'),
+            content: Center(child: Text('Sign Up Successful')),
             duration: Duration(seconds: 1),
           ),
         );
       } catch (error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error signing up: $error')));
+        print("sign up failed: $error");
       } finally {
         setState(() {
           isLoading = false;
@@ -167,6 +165,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Password';
+                          }
+                          if (value.length < 8) {
+                            return 'Password must be at least 8 characters long';
                           }
                           return null;
                         },
