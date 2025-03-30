@@ -9,8 +9,9 @@ import 'package:horeb_registration/widgets/custom_scuffold.dart';
 import 'package:horeb_registration/screens/signin_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key, required this.account});
+  const SignUpScreen({super.key, required this.account, required this.client});
   final Account account;
+  final Client client;
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
@@ -55,7 +56,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (ctx) => HomeScreen(account: widget.account),
+            builder:
+                (ctx) =>
+                    HomeScreen(account: widget.account, client: widget.client),
           ),
         );
       } catch (error) {
@@ -274,6 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           GoogleAuthButton(
                             account: widget.account,
                             parentContext: context,
+                            client: widget.client,
                             onSuccess: () {
                               print("Google authentication Success!");
                             },
@@ -298,8 +302,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (e) =>
-                                          SignInScreen(account: widget.account),
+                                      (e) => SignInScreen(
+                                        account: widget.account,
+                                        client: widget.client,
+                                      ),
                                 ),
                               );
                             },

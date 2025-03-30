@@ -17,17 +17,18 @@ void main() async {
   }
 
   Client client = Client()
-      .setEndpoint("https://cloud.appwrite.io/v1")
+      .setEndpoint(dotenv.env["ENDPOINT"]!)
       .setProject(dotenv.env["PROJECT_ID"]);
   Account account = Account(client);
 
-  runApp(MaterialApp(home: MyApp(account: account)));
+  runApp(MaterialApp(home: MyApp(account: account, client: client)));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.account});
+  const MyApp({super.key, required this.account, required this.client});
 
   final Account account;
+  final Client client;
 
   // This widget is the root of your application.
   @override
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Horeb',
       theme: lightMode,
-      home: WelcomeScreen(account: account),
+      home: WelcomeScreen(account: account, client: client),
     );
   }
 }

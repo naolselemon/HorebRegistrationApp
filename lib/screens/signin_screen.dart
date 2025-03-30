@@ -7,9 +7,9 @@ import 'package:horeb_registration/widgets/custom_scuffold.dart';
 import '../theme/theme.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key, required this.account});
+  const SignInScreen({super.key, required this.account, required this.client});
   final Account account;
-
+  final Client client;
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
@@ -20,6 +20,29 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool rememberPassword = true;
   bool isLoading = false;
+
+@override
+  void initState() {
+    super.initState();
+    _checkExistingSession(); 
+  }
+
+  
+  Future<void> _checkExistingSession() async {
+    try {
+      await widget.account.get(); 
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(account: widget.account, client: widget.client),
+          ),
+        );
+      }
+    } catch (e) {
+      print("No active session found: $e"); 
+    }
+  }
 
   Future<void> signinWithEmail() async {
     setState(() {
@@ -44,7 +67,9 @@ class _SignInScreenState extends State<SignInScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (ctx) => HomeScreen(account: widget.account),
+            builder:
+                (ctx) =>
+                    HomeScreen(account: widget.account, client: widget.client),
           ),
         );
       } catch (e) {
@@ -295,6 +320,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           GoogleAuthButton(
                             account: widget.account,
                             parentContext: context,
+                            client: widget.client,
                             onSuccess: () {
                               print("Google authentication successful");
                             },
@@ -318,8 +344,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (e) =>
-                                          SignUpScreen(account: widget.account),
+                                      (e) => SignUpScreen(
+                                        account: widget.account,
+                                        client: widget.client,
+                                      ),
                                 ),
                               );
                             },

@@ -8,9 +8,10 @@ import "package:horeb_registration/widgets/custom_scuffold.dart";
 import "package:horeb_registration/widgets/custom_welcome.dart";
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key, required this.account});
+  const WelcomeScreen({super.key, required this.account, required this.client});
 
   final Account account;
+  final Client client;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +59,7 @@ class WelcomeScreen extends StatelessWidget {
                   Expanded(
                     child: WelcomeButton(
                       buttonText: 'Sign in',
-                      onTap: SignInScreen(account: account),
+                      onTap: SignInScreen(account: account, client: client),
                       color: Colors.transparent,
                       textColor: Colors.white,
                     ),
@@ -66,7 +67,7 @@ class WelcomeScreen extends StatelessWidget {
                   Expanded(
                     child: WelcomeButton(
                       buttonText: 'Sign up',
-                      onTap: SignUpScreen(account: account),
+                      onTap: SignUpScreen(account: account, client: client),
                       color: Colors.white,
                       textColor: lightColorScheme.primary,
                     ),

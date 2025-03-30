@@ -9,11 +9,13 @@ class GoogleAuthButton extends StatelessWidget {
   final BuildContext parentContext;
   final VoidCallback? onSuccess;
   final VoidCallback? onFailure;
+  final Client client;
 
   const GoogleAuthButton({
     super.key,
     required this.account,
     required this.parentContext,
+    required this.client,
     this.onSuccess,
     this.onFailure,
   });
@@ -42,7 +44,9 @@ class GoogleAuthButton extends StatelessWidget {
       // Navigate to HomeScreen
       Navigator.pushReplacement(
         parentContext,
-        MaterialPageRoute(builder: (ctx) => HomeScreen(account: account)),
+        MaterialPageRoute(
+          builder: (ctx) => HomeScreen(account: account, client: client),
+        ),
       );
     } catch (e) {
       // Dismiss the loading dialog on failure
