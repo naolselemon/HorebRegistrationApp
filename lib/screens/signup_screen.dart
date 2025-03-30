@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import "package:appwrite/appwrite.dart";
+import 'package:horeb_registration/screens/home_screen.dart';
 
+import 'package:horeb_registration/services/google_auth.dart';
 import 'package:horeb_registration/theme/theme.dart';
 import 'package:horeb_registration/widgets/custom_scuffold.dart';
-import 'package:icons_plus/icons_plus.dart';
 
 import 'package:horeb_registration/screens/signin_screen.dart';
 
@@ -23,7 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
   bool isLoading = false;
 
-  Future<void> signUp() async {
+  Future<void> signupWithEmail() async {
     setState(() {
       isLoading = true;
     });
@@ -49,6 +50,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SnackBar(
             content: Center(child: Text('Sign Up Successful')),
             duration: Duration(seconds: 1),
+          ),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => HomeScreen(account: widget.account),
           ),
         );
       } catch (error) {
@@ -220,7 +227,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : signUp,
+                          onPressed: isLoading ? null : signupWithEmail,
 
                           child:
                               isLoading
@@ -264,8 +271,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(BoxIcons.bxl_google, size: 40),
-                          Icon(BoxIcons.bxl_apple, size: 40),
+                          GoogleAuthButton(
+                            account: widget.account,
+                            parentContext: context,
+                            onSuccess: () {
+                              print("Google authentication Success!");
+                            },
+                            onFailure: () {
+                              print("Google authentication Failure!");
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),

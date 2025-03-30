@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import "package:appwrite/appwrite.dart";
+import 'package:horeb_registration/screens/home_screen.dart';
 import 'package:horeb_registration/screens/signup_screen.dart';
-import 'package:icons_plus/icons_plus.dart';
+import 'package:horeb_registration/services/google_auth.dart';
 import 'package:horeb_registration/widgets/custom_scuffold.dart';
 import '../theme/theme.dart';
 
@@ -20,7 +21,7 @@ class _SignInScreenState extends State<SignInScreen> {
   bool rememberPassword = true;
   bool isLoading = false;
 
-  Future<void> signIn() async {
+  Future<void> signinWithEmail() async {
     setState(() {
       isLoading = true;
     });
@@ -39,6 +40,13 @@ class _SignInScreenState extends State<SignInScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Login successful")));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => HomeScreen(account: widget.account),
+          ),
+        );
       } catch (e) {
         print("Failed to login: $e");
         ScaffoldMessenger.of(
@@ -59,7 +67,6 @@ class _SignInScreenState extends State<SignInScreen> {
   Future<void> forgetPassword() async {
     final TextEditingController recoveryEmailController =
         TextEditingController();
-    // Store the parent context (SignInScreen context)
     final parentContext = context;
 
     return showDialog(
@@ -85,7 +92,7 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext), // Cancel
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
@@ -99,14 +106,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 }
 
                 try {
-                  // Send recovery email
                   await widget.account.createRecovery(
                     email: email,
                     url: 'https://reset-password-lovat.vercel.app/',
                   );
                   if (!mounted) return;
 
-                  Navigator.pop(dialogContext); // Close dialog
+                  Navigator.pop(dialogContext);
                   ScaffoldMessenger.of(parentContext).showSnackBar(
                     const SnackBar(
                       content: Text('Recovery email sent! Check your inbox.'),
@@ -121,7 +127,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   );
                 }
               },
-              child: const Text('Send'),
+              child: const Text('Send'), // Fixed typo from 'SetextAlignnd'
             ),
           ],
         );
@@ -245,7 +251,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : signIn,
+                          onPressed: isLoading ? null : signinWithEmail,
                           child:
                               isLoading
                                   ? const CircularProgressIndicator(
@@ -286,8 +292,16 @@ class _SignInScreenState extends State<SignInScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(BoxIcons.bxl_google, size: 40, shadows: []),
-                          Icon(BoxIcons.bxl_apple, size: 40),
+                          GoogleAuthButton(
+                            account: widget.account,
+                            parentContext: context,
+                            onSuccess: () {
+                              print("Google authentication successful");
+                            },
+                            onFailure: () {
+                              print("Google authentication failed");
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 25.0),
