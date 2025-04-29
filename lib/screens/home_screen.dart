@@ -24,8 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _batchController;
+  late TextEditingController _majorController;
   String subteam = "None";
   String graduated = "No";
+  String gender = "Female";
   String profileImage = "";
   bool isLoading = false;
   File? _selectedImage;
@@ -41,7 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
-    _batchController = TextEditingController(text: "example: 2025");
+    _batchController = TextEditingController();
+    _majorController = TextEditingController();
     _loadEnvAndFetchData();
   }
 
@@ -51,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _batchController.dispose();
+    _majorController.dispose();
     super.dispose();
   }
 
@@ -77,10 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
           _nameController.text = doc.data['name'] ?? "";
           _emailController.text = doc.data['email'] ?? user.email;
           _phoneController.text = doc.data['phone'] ?? "";
+          _majorController.text = doc.data['major'] ?? "";
           subteam = doc.data['subteam'] ?? "None";
-          _batchController.text = doc.data['batch'] ?? "example: 2025";
+          _batchController.text = doc.data['batch'] ?? "";
           graduated = doc.data['graduated'] ?? "No";
-          profileImage = doc.data['profileImage'] ?? "";
+          profileImage = doc.data['profile_image'] ?? "";
         });
       } catch (e) {
         if (e.toString().contains('document_not_found')) {
@@ -108,10 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
         'name': _nameController.text,
         'email': _emailController.text,
         'phone': _phoneController.text,
+        'major': _majorController.text,
         'subteam': subteam,
         'batch': _batchController.text,
         'graduated': graduated,
-        'profileImage': profileImage,
+        'profile_image': profileImage,
       };
 
       try {
@@ -134,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         } else {
-          throw e;
+          rethrow;
         }
       }
       print("Profile saved successfully");
@@ -202,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         final imageUrl =
-            'https://${dotenv.env["ENDPOINT"]}/v1/storage/buckets/${dotenv.env["BUCKET_ID"]}/files/${response.$id}/view?project=${dotenv.env["PROJECT_ID"]}';
+            '${dotenv.env["ENDPOINT"]}/storage/buckets/${dotenv.env["BUCKET_ID"]}/files/${response.$id}/view?project=${dotenv.env["PROJECT_ID"]}';
         setState(() {
           profileImage = imageUrl;
         });
@@ -237,7 +243,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? FileImage(_selectedImage!)
                               : (profileImage.isNotEmpty
                                       ? NetworkImage(profileImage)
-                                      : const AssetImage('assets/profile.jpg'))
+                                      : const AssetImage(
+                                        'assets/images/profile.jpeg',
+                                      ))
                                   as ImageProvider,
                     ),
                   ),
@@ -314,7 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? FileImage(_selectedImage!)
                             : (profileImage.isNotEmpty
                                     ? NetworkImage(profileImage)
-                                    : const AssetImage('assets/profile.jpg'))
+                                    : const AssetImage(
+                                      'assets/images/profile.jpeg',
+                                    ))
                                 as ImageProvider,
                   ),
                 ),
@@ -338,6 +348,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextFormField(
                   controller: _phoneController,
                   decoration: const InputDecoration(labelText: "Phone"),
+                  validator: (value) {
+                    if (value!.isEmpty) return "Please enter your phone number";
+                    if (value.length != 10) {
+                      return """Please enter a valid 10-digit phone number.
+                      Example: 091025305045""";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _majorController,
+                  decoration: const InputDecoration(labelText: "Major"),
+                  validator:
+                      (value) =>
+                          value!.isEmpty
+                              ? "Please enter your Major or Department"
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -355,6 +383,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChanged: (value) {
                     setState(() {
                       subteam = value!;
+                    });
+                  },
+                ),
+                DropdownButtonFormField<String>(
+                  value: gender,
+                  decoration: const InputDecoration(labelText: "Gender"),
+                  items:
+                      ["Male", "Female"].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      gender = value!;
                     });
                   },
                 ),
